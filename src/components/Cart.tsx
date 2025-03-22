@@ -8,12 +8,14 @@ import {
   CardContent,
   Button,
   Box,
+  CircularProgress,
 } from "@mui/material";
 import urun1 from "../images/urun1.jpg";
 import urun2 from "../images/urun2.jpg";
 
+
 interface Product {
-  id: number;
+  id: string;
   name: string;
   price: number;
   description: string;
@@ -23,7 +25,7 @@ interface Product {
 
 const initialProducts: Product[] = [
   {
-    id: 1,
+    id: "60d5ec9f78fc1c48b42c78a0",
     name: "Bird's Nest Fern",
     price: 22.0,
     description:
@@ -32,7 +34,7 @@ const initialProducts: Product[] = [
     quantity: 0,
   },
   {
-    id: 2,
+    id: "60d5ec9f78fc1c48b42c78a1",
     name: "Ctenanthe",
     price: 45.0,
     description:
@@ -44,8 +46,9 @@ const initialProducts: Product[] = [
 
 const Cart: React.FC = () => {
   const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const handleIncrease = (id: number) => {
+  const handleIncrease = (id: string) => {
     setProducts(
       products.map((product) =>
         product.id === id
@@ -55,7 +58,7 @@ const Cart: React.FC = () => {
     );
   };
 
-  const handleDecrease = (id: number) => {
+  const handleDecrease = (id: string) => {
     setProducts(
       products.map((product) =>
         product.id === id
@@ -65,7 +68,7 @@ const Cart: React.FC = () => {
     );
   };
 
-  const handleRemove = (id: number) => {
+  const handleRemove = (id: string) => {
     setProducts(products.filter((product) => product.id !== id));
   };
 
@@ -76,6 +79,37 @@ const Cart: React.FC = () => {
     );
   };
 
+  const handleCheckout = async () => {
+    setLoading(true);
+    try {
+      const updatedProducts = products.map((p) => ({
+        ...p,
+        price: p.price * p.quantity,
+        quantity: p.quantity,
+      }));
+  
+      const response = await fetch("http://localhost:8080/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ products: updatedProducts }),
+      });
+  
+      if (response.ok) {
+        alert("Order placed successfully!");
+        setProducts(initialProducts);
+      } else {
+        alert("Failed to place order.");
+      }
+    } catch (error) {
+      alert("An error occurred while placing the order. Please ensure the backend server is running.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant="h4" gutterBottom>
@@ -222,8 +256,14 @@ const Cart: React.FC = () => {
                 color="success"
                 fullWidth
                 sx={{ mt: 2 }}
+                onClick={handleCheckout}
+                disabled={loading}
               >
-                Proceed to Checkout
+                {loading ? (
+                  <CircularProgress size={24} color="inherit" />
+                ) : (
+                  "Proceed to Checkout"
+                )}
               </Button>
             </CardContent>
           </Card>
