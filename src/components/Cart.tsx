@@ -86,13 +86,20 @@ const Cart: React.FC = () => {
     setLoading(true);
     try {
       await delay(2000);
-
-      const updatedProducts = products.map((p) => ({
-        ...p,
-        price: p.price * p.quantity,
-        quantity: p.quantity,
-      }));
-
+  
+      const updatedProducts = products
+        .filter((product) => product.quantity > 0)
+        .map((p) => ({
+          ...p,
+          price: p.price * p.quantity,
+          quantity: p.quantity,
+        }));
+  
+      if (updatedProducts.length === 0) {
+        toast.error("Your cart is empty, please add some products.");
+        return;
+      }
+  
       const response = await fetch("http://localhost:8080/orders", {
         method: "POST",
         headers: {
@@ -100,7 +107,7 @@ const Cart: React.FC = () => {
         },
         body: JSON.stringify({ products: updatedProducts }),
       });
-
+  
       if (response.ok) {
         toast.success("Order placed successfully!");
         setProducts(initialProducts);
@@ -113,6 +120,7 @@ const Cart: React.FC = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <Container sx={{ mt: 4 }}>
