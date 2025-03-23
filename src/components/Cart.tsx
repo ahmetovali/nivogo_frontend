@@ -10,9 +10,10 @@ import {
   Box,
   CircularProgress,
 } from "@mui/material";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import urun1 from "../images/urun1.jpg";
 import urun2 from "../images/urun2.jpg";
-
 
 interface Product {
   id: string;
@@ -79,15 +80,19 @@ const Cart: React.FC = () => {
     );
   };
 
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
   const handleCheckout = async () => {
     setLoading(true);
     try {
+      await delay(2000);
+
       const updatedProducts = products.map((p) => ({
         ...p,
         price: p.price * p.quantity,
         quantity: p.quantity,
       }));
-  
+
       const response = await fetch("http://localhost:8080/orders", {
         method: "POST",
         headers: {
@@ -95,23 +100,23 @@ const Cart: React.FC = () => {
         },
         body: JSON.stringify({ products: updatedProducts }),
       });
-  
+
       if (response.ok) {
-        alert("Order placed successfully!");
+        toast.success("Order placed successfully!");
         setProducts(initialProducts);
       } else {
-        alert("Failed to place order.");
+        toast.error("Failed to place order.");
       }
     } catch (error) {
-      alert("An error occurred while placing the order. Please ensure the backend server is running.");
+      toast.error("An error occurred while placing the order. Please ensure the backend server is running.");
     } finally {
       setLoading(false);
     }
   };
-  
-  
+
   return (
     <Container sx={{ mt: 4 }}>
+      <ToastContainer position="bottom-center" autoClose={2000} hideProgressBar />
       <Typography variant="h4" gutterBottom>
         Cart
       </Typography>
